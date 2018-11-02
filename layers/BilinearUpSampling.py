@@ -1,7 +1,6 @@
 import tensorflow as tf
-from keras.backend import int_shape, permute_dimensions
+from keras.backend import int_shape, permute_dimensions, normalize_data_format
 from keras.layers import *
-
 
 def _resize_images(x, height_factor, width_factor, data_format):
     """Resizes the images contained in a 4D tensor.
@@ -79,7 +78,7 @@ class BilinearUpSampling2D(Layer):
 
     def __init__(self, size=(2, 2), data_format=None, **kwargs):
         super(BilinearUpSampling2D, self).__init__(**kwargs)
-        self.data_format = conv_utils.normalize_data_format(data_format)
+        self.data_format = K.normalize_data_format(data_format)
         self.size = conv_utils.normalize_tuple(size, 2, 'size')
         self.input_spec = InputSpec(ndim=4)
 

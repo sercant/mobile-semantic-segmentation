@@ -1,13 +1,18 @@
 import keras.backend as K
 from keras import Input
 from keras.applications import mobilenet
-from keras.applications.mobilenet import DepthwiseConv2D, relu6
+# from keras.applications.mobilenet import DepthwiseConv2D, relu6
+from keras.layers.convolutional import DepthwiseConv2D
+from keras.layers import ReLU
+from keras import layers
+from keras_applications import mobilenet
 from keras.engine import Model
 from keras.layers import BatchNormalization, Activation, Conv2D, concatenate, Conv2DTranspose
 
 import loss
 from layers.BilinearUpSampling import BilinearUpSampling2D
 
+relu6 = layers.ReLU(6.)
 
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1), block_id=1):
     """Adds an initial convolution layer (with batch normalization and relu6).
@@ -63,7 +68,7 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1), block_id=
                strides=strides,
                name='conv_%d' % block_id)(inputs)
     x = BatchNormalization(axis=channel_axis, name='conv_%d_bn' % block_id)(x)
-    return Activation(relu6, name='conv_%d_relu' % block_id)(x)
+    return layers.ReLU(6., name='conv_%d_relu' % block_id)(x) # Activation(relu6, name='conv_%d_relu' % block_id)(x)
 
 
 def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
@@ -125,7 +130,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
                         use_bias=False,
                         name='conv_dw_%d' % block_id)(inputs)
     x = BatchNormalization(axis=channel_axis, name='conv_dw_%d_bn' % block_id)(x)
-    x = Activation(relu6, name='conv_dw_%d_relu' % block_id)(x)
+    x = layers.ReLU(6., name='conv_dw_%d_relu' % block_id)(x) # Activation(relu6, name='conv_dw_%d_relu' % block_id)(x)
 
     x = Conv2D(pointwise_conv_filters, (1, 1),
                padding='same',
@@ -133,7 +138,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
                strides=(1, 1),
                name='conv_pw_%d' % block_id)(x)
     x = BatchNormalization(axis=channel_axis, name='conv_pw_%d_bn' % block_id)(x)
-    return Activation(relu6, name='conv_pw_%d_relu' % block_id)(x)
+    return layers.ReLU(6., name='conv_pw_%d_relu' % block_id)(x) # Activation(relu6, name='conv_pw_%d_relu' % block_id)(x)
 
 
 def MobileUNet(input_shape=None,
@@ -141,7 +146,8 @@ def MobileUNet(input_shape=None,
                alpha_up=1.0,
                depth_multiplier=1,
                dropout=1e-3,
-               input_tensor=None):
+               input_tensor=None,
+               num_classes=1):
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
@@ -203,7 +209,7 @@ def MobileUNet(input_shape=None,
     # b18 = _depthwise_conv_block(up5, filters, alpha_up, depth_multiplier, block_id=18)
     b18 = _conv_block(up5, filters, alpha_up, block_id=18)
 
-    x = Conv2D(1, (1, 1), kernel_initializer='he_normal', activation='linear')(b18)
+    x = Conv2D(num_classes, (1, 1), kernel_initializer='he_normal', activation='linear')(b18)
     x = BilinearUpSampling2D(size=(2, 2))(x)
     x = Activation('sigmoid')(x)
 
@@ -214,8 +220,8 @@ def MobileUNet(input_shape=None,
 
 def custom_objects():
     return {
-        'relu6': mobilenet.relu6,
-        'DepthwiseConv2D': mobilenet.DepthwiseConv2D,
+        'relu6': layers.ReLU(6.),
+        'DepthwiseConv2D': layers.DepthwiseConv2D,
         'BilinearUpSampling2D': BilinearUpSampling2D,
         'dice_coef_loss': loss.dice_coef_loss,
         'dice_coef': loss.dice_coef,
@@ -231,7 +237,8 @@ def main():
     model = MobileUNet(input_shape=(img_height, img_width, 3),
                        alpha=1,
                        alpha_up=1,
-                       depth_multiplier=1)
+                       depth_multiplier=1,
+                       num_classes=12)
     # model = MobileUNet(input_shape=(img_height, img_width, 3))
 
     for idx, l in enumerate(model.layers):

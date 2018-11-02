@@ -4,3 +4,4 @@ data/*
 artifacts/*
 logs/*
 !.keep
+.vscode/settings.json
