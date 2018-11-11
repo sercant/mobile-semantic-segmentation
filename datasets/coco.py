@@ -9,8 +9,8 @@ import skimage
 import numpy as np
 import skimage.io as ski_io
 
-from pycocotools.coco import COCO
-from pycocotools import mask as maskUtils
+from pycocotools_m.coco import COCO
+from pycocotools_m import mask as maskUtils
 from mrcnn import utils
 
 DEFAULT_DATASET_YEAR = "2017"
