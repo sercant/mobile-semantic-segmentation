@@ -33,6 +33,9 @@ def train(coco_path, checkpoint_path, log_path, epochs=100, batch_size=50):
     validation_generator = coco_generator(cat_nms, coco_path, subset='val', batch_size=BATCH_SIZE)
 
     model.summary()
+    if os.path.exists(checkpoint_path):
+        model.load_weights(checkpoint_path, by_name=True)
+
     model.compile(
         optimizer=optimizers.SGD(lr=0.0001, momentum=0.9),
         # optimizer=Adam(lr=0.001),
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--checkpoint_path',
         type=str,
-        default='./checkpoints',
+        default='./checkpoints/weights.hdf5',
         help='mask file as numpy format'
     )
     parser.add_argument(
