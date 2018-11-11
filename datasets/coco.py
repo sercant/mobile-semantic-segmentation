@@ -393,6 +393,22 @@ class DataGenerator(keras.utils.Sequence):
         mask = skimage.transform.resize(
             mask, (size[0], size[1], mask.shape[2]), order=0)
 
+        # random crop
+        if image.shape[0] != sq_size:
+            pad_needed = image.shape[0] - sq_size
+            pad_l = np.random.randint(0, pad_needed)
+            pad_r = pad_needed - pad_l
+
+            image = image[pad_l:-pad_r, :, :]
+            mask = mask[pad_l:-pad_r, :, :]
+        elif image.shape[1] != sq_size:
+            pad_needed = image.shape[1] - sq_size
+            pad_l = np.random.randint(0, pad_needed)
+            pad_r = pad_needed - pad_l
+
+            image = image[:, pad_l:-pad_r, :]
+            mask = mask[:,  pad_l:-pad_r, :]
+
         assert image.shape[0] == sq_size and image.shape[1] == sq_size
         assert mask.shape[0] == sq_size and mask.shape[1] == sq_size
 
