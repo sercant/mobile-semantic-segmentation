@@ -11,7 +11,7 @@ import skimage.io as ski_io
 
 from pycocotools.coco import COCO
 from pycocotools import mask as maskUtils
-from mrcnn import model as utils
+from mrcnn import utils
 
 DEFAULT_DATASET_YEAR = "2017"
 
