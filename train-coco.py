@@ -64,6 +64,7 @@ def train(coco_path, checkpoint_path, log_path, epochs=100, batch_size=50):
     model.fit_generator(
         generator=training_generator,
         validation_data=validation_generator,
+        epochs=NUM_EPOCH,
         callbacks=[scheduler, tensorboard, checkpoint, csv_logger],
     )
 
