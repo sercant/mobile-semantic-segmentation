@@ -1,3 +1,6 @@
+import os
+import argparse
+
 import numpy as np
 from keras import callbacks, optimizers
 from learning_rate import create_lr_schedule
@@ -6,12 +9,11 @@ from loss import dice_coef_loss, dice_coef, recall, precision
 from datasets.coco import DataGenerator as coco_generator
 from nets.MobileUNet import MobileUNet
 
-if __name__ == '__main__':
+def train(coco_path, checkpoint_path, log_path, epochs=100, batch_size=50):
     cat_nms = ['book', 'apple', 'keyboard']
-    cat_clrs = [[0., 0., 128.], [128., 0., 0.], [0., 128., 0.]]
 
-    BATCH_SIZE = 50
-    NUM_EPOCH = 100
+    BATCH_SIZE = batch_size
+    NUM_EPOCH = epochs
     IMAGE_W = 224
     IMAGE_H = 224
 
@@ -27,8 +29,8 @@ if __name__ == '__main__':
     seed = 1
     np.random.seed(seed)
 
-    training_generator = coco_generator(cat_nms, '/Volumes/SercanHDD/coco', batch_size=BATCH_SIZE)
-    validation_generator = coco_generator(cat_nms, '/Volumes/SercanHDD/coco', subset='val', batch_size=BATCH_SIZE)
+    training_generator = coco_generator(cat_nms, coco_path, batch_size=BATCH_SIZE)
+    validation_generator = coco_generator(cat_nms, coco_path, subset='val', batch_size=BATCH_SIZE)
 
     model.summary()
     model.compile(
@@ -49,9 +51,9 @@ if __name__ == '__main__':
     # callbacks
     scheduler = callbacks.LearningRateScheduler(
         create_lr_schedule(NUM_EPOCH, lr_base=lr_base, mode='progressive_drops'))
-    tensorboard = callbacks.TensorBoard(log_dir='./logs')
-    csv_logger = callbacks.CSVLogger('./logs/training.csv')
-    checkpoint = callbacks.ModelCheckpoint(filepath='./checkpoints',
+    tensorboard = callbacks.TensorBoard(log_dir=log_path)
+    csv_logger = callbacks.TensorBoard(log_path)
+    checkpoint = callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                            save_weights_only=True,
                                            save_best_only=True)
 
@@ -61,3 +63,38 @@ if __name__ == '__main__':
         validation_data=validation_generator,
         callbacks=[scheduler, tensorboard, checkpoint, csv_logger],
     )
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--coco_path',
+        type=str,
+        default='./data/coco',
+        # default='/Volumes/SercanHDD/coco',
+        help='data path of coco'
+    )
+    parser.add_argument(
+        '--checkpoint_path',
+        type=str,
+        default='./checkpoints',
+        help='mask file as numpy format'
+    )
+    parser.add_argument(
+        '--log_path',
+        type=str,
+        default='./logs',
+        help='mask file as numpy format'
+    )
+    parser.add_argument(
+        '--epochs',
+        type=int,
+        default=250,
+    )
+    parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=32,
+    )
+    args, _ = parser.parse_known_args()
+
+    train(**vars(args))
