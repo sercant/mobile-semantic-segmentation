@@ -405,8 +405,8 @@ class DataGenerator(keras.utils.Sequence):
         # X : (n_samples, *dim, n_channels)
         'Generates data containing batch_size samples'
         # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty((self.batch_size, *self.dim, self.n_classes))
+        X = np.empty((self.batch_size, self.dim[0], self.dim[1], self.n_channels))
+        y = np.empty((self.batch_size, self.dim[0], self.dim[1], self.n_classes))
 
         # Generate data
         for i, ID in enumerate(image_ids_temp):
