@@ -43,7 +43,7 @@ def main(pb_file, img_file):
         # batched = img.reshape(-1, img_h, img_w, 3)
         normalized = standardize(input_image)
         
-        converter = tf.contrib.lite.TocoConverter.from_session(sess, [x], [y])
+        converter = tf.contrib.lite.TFLiteConverter.from_session(sess, [x], [y])
         tflite_model = converter.convert()
         open("artifacts/converted_model.tflite", "wb").write(tflite_model)
 

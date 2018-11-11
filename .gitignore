@@ -5,3 +5,4 @@ artifacts/*
 logs/*
 !.keep
 .vscode/settings.json
+artifacts
